@@ -27,7 +27,7 @@ export function TimeSlotNav({ timeline }) {
           break;
         }
       }
-      if (current) setActiveSlot(current);
+      setActiveSlot(current ?? blocks[0]?.dataset.timeslotId ?? null);
     };
 
     window.addEventListener('scroll', onScroll, { passive: true });

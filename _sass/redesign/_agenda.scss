@@ -6,15 +6,15 @@
   // Total sticky offset: header + nav pills + filter bar (set via JS ResizeObserver)
   --sticky-offset: calc(
     var(--header-height-mobile)
-    + var(--timeslot-nav-height, 49px)
-    + var(--filter-bar-height, 49px)
+    + var(--timeslot-nav-height, 0px)
+    + var(--filter-bar-height, 0px)
   );
 
   @include tablet-up {
     --sticky-offset: calc(
       var(--header-height)
-      + var(--timeslot-nav-height, 49px)
-      + var(--filter-bar-height, 49px)
+      + var(--timeslot-nav-height, 0px)
+      + var(--filter-bar-height, 0px)
     );
   }
 
