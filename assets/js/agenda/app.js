@@ -5,6 +5,7 @@ import { useBookmarks, useAgendaBuilder } from './hooks.js';
 import {
   AgendaTimeline,
   AgendaBuilderPanel,
+  BreakNotice,
   FilterBar,
   TimeSlotNav,
   SessionModal,
@@ -281,6 +282,8 @@ function AgendaApp() {
     if (totalScheduledCount < sessionThreshold) return items;
 
     bookendEvents.forEach((evt, i) => {
+      // Skip bookend events that aren't visible on any surface
+      if (evt.show_in_nav === false && evt.show_in_body === false) return;
       const slotId = `bookend-${i}`;
       items.push({
         type: 'bookend',
@@ -346,17 +349,22 @@ function AgendaApp() {
     return () => { document.body.style.overflow = ''; };
   }, [modalSession, importExportMode]);
 
-  // Measure timeslot nav height and set CSS variable for filter bar offset
+  // Measure sticky element heights and set CSS variables for offsets
   useEffect(() => {
     const nav = document.querySelector('.timeslot-nav');
-    if (!nav) return;
-    const observer = new ResizeObserver(([entry]) => {
-      document.documentElement.style.setProperty(
-        '--timeslot-nav-height',
-        `${entry.borderBoxSize?.[0]?.blockSize ?? entry.target.offsetHeight}px`
-      );
+    const filterBar = document.querySelector('.filter-bar');
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const h = entry.borderBoxSize?.[0]?.blockSize ?? entry.target.offsetHeight;
+        if (entry.target === nav) {
+          document.documentElement.style.setProperty('--timeslot-nav-height', `${h}px`);
+        } else if (entry.target === filterBar) {
+          document.documentElement.style.setProperty('--filter-bar-height', `${h}px`);
+        }
+      }
     });
-    observer.observe(nav);
+    if (nav) observer.observe(nav);
+    if (filterBar) observer.observe(filterBar);
     return () => observer.disconnect();
   }, [timeline]);
 
@@ -400,6 +408,7 @@ function AgendaApp() {
         showAgendaBuilder=${showAgendaBuilder}
         builderCount=${builder.selectedCount}
       />
+      <${BreakNotice} bookendEvents=${bookendEvents} />
       ${filters.agendaBuilder ? html`
         <${AgendaBuilderPanel}
           timeSlots=${allTimeSlots}

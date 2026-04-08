@@ -11,31 +11,35 @@ export function TimeSlotNav({ timeline }) {
   const [activeSlot, setActiveSlot] = useState(null);
   const navRef = useRef(null);
 
-  // Observe which time slot is currently in view
+  // Track which time slot is currently in view via scroll position
   useEffect(() => {
-    const headers = document.querySelectorAll('[data-timeslot-id]');
-    if (!headers.length) return;
+    const stickyEls = ['.site-header', '.timeslot-nav', '.filter-bar']
+      .map(s => document.querySelector(s));
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            setActiveSlot(entry.target.dataset.timeslotId);
-          }
-        });
-      },
-      { rootMargin: '-120px 0px -60% 0px', threshold: 0 }
-    );
+    const onScroll = () => {
+      const cutoff = stickyEls.reduce((sum, el) => sum + (el?.offsetHeight ?? 0), 16);
+      const blocks = document.querySelectorAll('[data-timeslot-id]');
+      let current = null;
+      for (const el of blocks) {
+        if (el.getBoundingClientRect().top <= cutoff) {
+          current = el.dataset.timeslotId;
+        } else {
+          break;
+        }
+      }
+      if (current) setActiveSlot(current);
+    };
 
-    headers.forEach(el => observer.observe(el));
-    return () => observer.disconnect();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
   }, [timeline]);
 
   // Auto-scroll the nav strip horizontally so the active pill is visible
   useEffect(() => {
     if (!activeSlot || !navRef.current) return;
     const strip = navRef.current.querySelector('.timeslot-nav-scroll');
-    const pill = navRef.current.querySelector('.timeslot-pill.active');
+    const pill = navRef.current.querySelector(`[data-slot-id="${CSS.escape(activeSlot)}"]`);
     if (strip && pill) {
       const target = pill.offsetLeft - strip.offsetWidth / 2 + pill.offsetWidth / 2;
       const motion = matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
@@ -44,13 +48,10 @@ export function TimeSlotNav({ timeline }) {
   }, [activeSlot]);
 
   function scrollTo(slotId) {
-    const el = document.querySelector(`[data-timeslot-id="${CSS.escape(slotId)}"]`);
-    if (el) {
-      // Measure actual sticky elements instead of hardcoding offset
-      const filterBar = document.querySelector('.filter-bar');
-      const headerOffset = (filterBar?.getBoundingClientRect().bottom ?? 140) + 8;
-      const top = el.getBoundingClientRect().top + window.scrollY - headerOffset;
-      window.scrollTo({ top, behavior: 'smooth' });
+    const header = document.querySelector(`[data-timeslot-id="${CSS.escape(slotId)}"]`);
+    const block = header?.closest('.timeslot-block');
+    if (block) {
+      block.scrollIntoView({ behavior: 'smooth' });
     }
   }
 
@@ -59,18 +60,51 @@ export function TimeSlotNav({ timeline }) {
   return html`
     <nav class="timeslot-nav" ref=${navRef} aria-label="Jump to time slot">
       <div class="timeslot-nav-scroll">
-        ${timeline.map(item => html`
-          <button
-            key=${item.slotId}
-            class="timeslot-pill ${item.type === 'bookend' ? 'pill-bookend' : ''} ${activeSlot === item.slotId ? 'active' : ''}"
-            onClick=${() => scrollTo(item.slotId)}
-            aria-label="Jump to ${item.label}"
-          >
-            ${item.label}
-          </button>
-        `)}
+        ${timeline.map(item => {
+          const isBookend = item.type === 'bookend';
+          if (isBookend && item.data.show_in_nav === false) return null;
+          const clickable = !isBookend || item.data.nav_clickable !== false;
+          const cls = `timeslot-pill${isBookend ? ' pill-bookend' : ''}${clickable && activeSlot === item.slotId ? ' active' : ''}`;
+
+          if (!clickable) {
+            return html`
+              <span key=${item.slotId} data-slot-id=${item.slotId}
+                class=${cls} aria-label=${item.label}>${item.label}</span>
+            `;
+          }
+          return html`
+            <button key=${item.slotId} data-slot-id=${item.slotId}
+              class=${cls} onClick=${() => scrollTo(item.slotId)}
+              aria-label="Jump to ${item.label}">${item.label}</button>
+          `;
+        })}
       </div>
     </nav>
+  `;
+}
+
+// ---------------------------------------------------------------------------
+// BreakNotice — compact banner showing lunch & snack break times
+// ---------------------------------------------------------------------------
+
+const breakIcon = html`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>`;
+
+export function BreakNotice({ bookendEvents }) {
+  const breaks = bookendEvents.filter(e => e.show_in_break_notice);
+  if (!breaks.length) return null;
+
+  return html`
+    <div class="break-notice">
+      ${breaks.map((b, i) => html`
+        ${i > 0 && html`<span class="break-notice-divider" aria-hidden="true"></span>`}
+        <div class="break-notice-item" key=${b.title}>
+          <span class="break-notice-icon" aria-hidden="true">${breakIcon}</span>
+          <span class="break-notice-title">${b.title}</span>
+          <span class="break-notice-time">${b.time}${b.end_time ? ` – ${b.end_time}` : ''}</span>
+          <span class="break-notice-location">${b.location}</span>
+        </div>
+      `)}
+    </div>
   `;
 }
 
@@ -438,6 +472,7 @@ export function AgendaTimeline({ timeline, unscheduledSessions, speakerMap, room
 
       ${timeline.map((item) => {
         if (item.type === 'bookend') {
+          if (item.data.show_in_body === false) return null;
           return html`
             <div class="timeslot-block" key=${item.slotId}>
               <div class="timeslot-header" data-timeslot-id=${item.slotId}>
