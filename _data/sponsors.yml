@@ -79,8 +79,9 @@
   url: https://dynabytetech.com/en/
   sponsorType: Snack Sponsor
   description: "Dynabyte is a Swedish software solutions firm with offices in Stockholm and St. Petersburg, Florida, specializing in digital enterprise solutions through software development, cloud computing, data engineering, and AI. Their team delivers across sectors including financial services, insurance, and manufacturing, with clients like Spotify, Klarna, and Ikea."
-# - name: CODE Magazine
-#   logoPath: /assets/img/sponsors/CODE-Magazine/code-sponsor.png
-#   logoStyle: standard
-#   url: https://www.codemag.com/
-#   level: Swag
+- name: CODE Magazine
+  logoPath: /assets/img/sponsors/CODE-Magazine/code-sponsor.png
+  logoStyle: standard
+  url: https://www.codemag.com/
+  sponsorType: Swag Sponsor
+  description: "CODE Magazine is a leading independent publication for professional software developers, covering .NET, C#, JavaScript, AI, cloud development, and more. Published by EPS Software since 1998, CODE Magazine delivers in-depth technical articles and real-world guidance for the developer community."
