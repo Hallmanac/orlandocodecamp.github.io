@@ -15,32 +15,47 @@ bookend_events:
     description: "Check in, grab your badge, and enjoy breakfast and coffee provided by Dunkin."
     location: "Breezeway (next to parking lot)"
     type: "logistics"
+    show_in_nav: true
+    nav_clickable: true
+    show_in_body: true
   - time: "8:00 AM"
     end_time: "9:15 AM"
     title: "Announcements & Keynote"
     description: "Welcome announcements and keynote presentation."
     location: "J100"
     type: "keynote"
+    show_in_nav: false
+    nav_clickable: false
+    show_in_body: false
   - time: "11:20 AM"
     end_time: "12:15 PM"
     title: "Lunch"
-    description: "Lunch provided by Jason's Deli. Pre-ordered during registration on Eventbrite."
-    cta_label: "Register Here"
-    cta_link: "/attendees/"
+    description: "Lunch provided by Jason's Deli."
     location: "Registration Area"
     type: "logistics"
+    show_in_nav: true
+    nav_clickable: true
+    show_in_body: true
+    show_in_break_notice: true
   - time: "4:30 PM"
     end_time: "5:00 PM"
     title: "Closing Remarks & Raffle"
     description: "Prize raffle and closing remarks. Must be present to win!"
     location: "Main Lobby / Rotunda"
     type: "logistics"
+    show_in_nav: true
+    nav_clickable: true
+    show_in_body: true
   - time: "2:05 PM"
     end_time: "2:30 PM"
     title: "Snack Break"
-    description: "Snacks provided by Dynabyte. Pre-ordered during registration on Eventbrite."
-    location: "Sponsors Area"
+    description: "Snacks provided by Dynabyte."
+    location: "The UP building rotunda"
     type: "social"
+    show_in_nav: true
+    nav_clickable: true
+    show_in_body: true
+    show_in_break_notice: true
   - time: "5:00 PM"
     end_time: "8:00 PM"
     title: "After-Party"
@@ -48,6 +63,9 @@ bookend_events:
     location: "4th Street Bar & Grill, Lake Mary"
     location_link: "https://maps.google.com/?q=4th+Street+Bar+%26+Grill,+Lake+Mary+FL"
     type: "social"
+    show_in_nav: true
+    nav_clickable: true
+    show_in_body: true
 ---
 
 <div id="agenda-app" data-api-id="er10xu03" data-session-threshold="50" data-location-question-id="112742">
